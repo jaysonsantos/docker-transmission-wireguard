@@ -23,7 +23,7 @@ RUN apk --no-cache add curl jq \
 
 # Main image — Ubuntu + Transmission from the shared base
 # https://github.com/haugene/transmission-base
-FROM haugene/transmission-base:4.1.3-ubuntu26.04
+FROM ghcr.io/jaysonsantos/transmission-base:4.1.4-ubuntu26.04
 
 VOLUME /data
 VOLUME /config
