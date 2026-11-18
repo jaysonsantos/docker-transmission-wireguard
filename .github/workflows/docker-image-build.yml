@@ -10,6 +10,8 @@ on:
       - docker-compose.yml
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -37,6 +39,12 @@ jobs:
 
       # Branch pushes → :main / :dev
       # Semver tags (v1.2.3) → :1.2.3, :1.2, :1, and :latest (via flavor)
+      # The Transmission version comes from the base image tag in the
+      # Dockerfile, which Renovate updates.
+      - name: Read Transmission version
+        id: version
+        run: echo "transmission=$(sed -n 's#^FROM .*/transmission-base:\([0-9.]*\)-.*#\1#p' Dockerfile)" >> "$GITHUB_OUTPUT"
+
       - name: Extract Docker Metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -44,7 +52,8 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/transmission-wireguard
           tags: |
             type=ref,event=branch
-            type=sha,prefix=transmission-4.1.4-
+            type=raw,value=${{ steps.version.outputs.transmission }},enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=${{ steps.version.outputs.transmission }}-,enable=${{ github.ref == 'refs/heads/main' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -58,7 +67,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             REVISION=${{ github.sha }}
-          push: true
+          # A pull request only builds, so Renovate automerge waits for it.
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ github.workflow }}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "forkProcessing": "enabled",
+  "packageRules": [
+    {
+      "description": "Merge updates of the Transmission base image when the image build passes",
+      "matchPackageNames": ["ghcr.io/jaysonsantos/transmission-base"],
+      "automerge": true
+    }
+  ]
+}
